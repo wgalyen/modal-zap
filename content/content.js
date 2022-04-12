@@ -1,25 +1,41 @@
 /* eslint-env browser */
 /* globals chrome, Common */
 
-const { $, debounce, Background } = Common
+const { $, debounce, Background, Actions, Functions } = Common
 
 const definitions = []
 
-const blockedModals = []
+const blockedModals = {}
 
+// Functions that can be called from the popup script
 const Content = {
   getBlockedModals() {
-    log('yyy', { blockedModals })
     return blockedModals
   },
-}
 
-const Functions = {
-  $(selector) {
-    return !!$(selector)
+  getUrl() {
+    return window.location.href
+  },
+
+  reload() {
+    window.location.reload()
+  },
+
+  async isAllowed(url = window.location.href) {
+    // Check if hostname is in allow list
+    const { allowList } = await chrome.storage.sync.get({
+      allowList: [],
+    })
+
+    let { hostname } = new URL(url)
+
+    hostname = hostname.replace(/^www\./, '')
+
+    return allowList.includes(hostname)
   },
 }
 
+// Log messages in the background script console
 function log(...messages) {
   const error = messages[0]
 
@@ -30,56 +46,33 @@ function log(...messages) {
   }
 }
 
-const run = () => {
+const run = async () => {
   try {
+    if (await Content.isAllowed()) {
+      return
+    }
+
     definitions.forEach((definition) => {
       const { type, conditions, actions, completed } = definition
 
       if (
         completed ||
-        !conditions.every(({ func, arg }) => {
-          if (Functions.func) {
-            throw new Error(`Function does not exist: Functions.${func}`)
-          }
-
-          return Functions[func](arg)
-        })
+        !conditions.every(({ func, arg }) => Functions[func](arg))
       ) {
         return
       }
 
       let found = false
 
-      actions.forEach(({ selector, action }) => {
+      actions.forEach(({ selector, func, args }) => {
         const node = $(selector)
 
         if (node) {
           found = true
 
-          const [func, ...args] = action.split(' ')
+          log(`action: ${selector}: ${func}(${args.join(', ')})`)
 
-          log(`action: ${func}(${args.join(', ')}) on ${selector}`)
-
-          switch (func) {
-            case 'remove':
-              node.remove()
-
-              break
-            case 'addClass':
-              node.classList.add(...args)
-
-              break
-            case 'removeClass':
-              if (args[0] === '*') {
-                node.className = ''
-              } else {
-                node.classList.remove(...args)
-              }
-
-              break
-            default:
-              log(new Error(`Unknown function ${func}(${args.join(', ')})`))
-          }
+          Actions[func].call(node, ...args)
         }
       })
 
@@ -96,7 +89,7 @@ const run = () => {
         // Update all-time totals
         chrome.storage.sync
           .get({
-            blockModals: {},
+            blockedModals: {},
           })
           .then(({ blockedModals }) => {
             blockedModals[type] = (blockedModals[type] || 0) + 1
@@ -110,6 +103,7 @@ const run = () => {
   }
 }
 
+// Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const { func } = request
 
@@ -119,7 +113,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     Promise.resolve(Content[func].call({ request, sender }, ...args))
       .then((response) => {
         // eslint-disable-next-line no-console
-        log(`popup:`, { func, args, response })
+        log(`popup: ${func}(${args.join(', ')})`, response)
 
         sendResponse(response)
       })
@@ -136,7 +130,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       ...(await Background.call('getDefinitions', location.href))
     )
 
-    const runDebounced = debounce(() => run(), 500)
+    const runDebounced = debounce(() => run(), 100)
 
     const mutationObserver = new MutationObserver(() => runDebounced())
 
