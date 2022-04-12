@@ -18,7 +18,7 @@ Install locally:
 
 * Clone this repository
 * Run `./run manifest v3` or copy `manifest-v3.json` to `manifest.json`
-* Go go `about:extensions`
+* Go to `about:extensions`
 * Enable 'Developer mode'
 * Click 'Load unpacked'
 * Select the project folder
@@ -123,7 +123,8 @@ Actions are run when the condition is met, or if no condition is specified.
 ### Functions
 | Function      | Argument   | Description |
 |---------------|------------|-------------|
-| `remove` .    |            | Remove the HTML element
+| `remove`      |            | Remove the HTML element
+| `removeIf`    | String     | Remove the HTML element if its text content matches a string
 | `addClass`    | Class name | Add a class
 | `removeClass` | Class name | Remove a class
 | `addStyle`    | Styles     | Appends CSS to the style attribute

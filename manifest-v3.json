@@ -1,7 +1,7 @@
 {
   "name": "ModalZap - Block modals and overlays",
   "description": "ModalZap automatically removes content blocking modals including paywalls, discount offers, prompts to sign up or enter your email address and more.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifest_version": 3,
   "default_locale": "en",
   "background": {
