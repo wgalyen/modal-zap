@@ -1,4 +1,7 @@
 {
+  "*": {
+    ".wbounce-modal": "removeIf newsletter"
+  },
   "*.nytimes.com": {
     ".MAG_web_all_Monthly-Sale-dock": "remove"
   },
