@@ -1,0 +1,5 @@
+{
+  "*": {
+    "[id^='sp_message_container_']": "remove"
+  }
+}

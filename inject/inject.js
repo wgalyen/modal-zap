@@ -21,25 +21,26 @@
         return chainToProp(chain) !== undefined
       },
       call(chain, ...args) {
-        chainToProp(chain)(...args)
+        chainToProp(chain)?.(...args)
       },
     }
 
-    const receiveMessage = ({ data }) => {
-      const { modalzapRequest: message } = data
-      if (!message) {
+    const receiveMessage = ({ data: { modalzapRequest } }) => {
+      if (!modalzapRequest) {
         return
       }
 
-      const { func, args } = message
+      const { func, args, uid } = modalzapRequest
 
       removeEventListener('message', receiveMessage)
 
-      if (func && Functions[func]) {
-        postMessage({
-          modalzapResponse: Functions[func](...(args || [])),
-        })
-      }
+      postMessage({
+        modalzapResponse: {
+          uid,
+          message:
+            func && Functions[func] ? Functions[func](...(args || [])) : false,
+        },
+      })
     }
 
     addEventListener('message', receiveMessage)

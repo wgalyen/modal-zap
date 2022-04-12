@@ -4,7 +4,11 @@
       "#gateway-content": "remove",
       "#app > div > div": "removeClass *",
       "#app > div > div > div:last-child": "remove"
-    },
+    }
+  },
+  "*.newyorker.com": {
+    ".paywall-bar": "remove",
+    ".paywall-modal": "remove"
   },
   "*.wired.com": {
     ".persistent-bottom": "remove",

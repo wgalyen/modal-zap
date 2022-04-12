@@ -1,0 +1,8 @@
+{
+  "*.nytimes.com": {
+    ".MAG_web_all_Monthly-Sale-dock": "remove"
+  },
+  "*.theatlantic.com": {
+    "#paywall[data-category^='nudge']": "remove"
+  }
+}
