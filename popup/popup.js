@@ -1,31 +1,18 @@
-/* globals chrome */
+/* globals chrome, Common */
 
 const modalTypes = []
 
-const $ = document.querySelector.bind(document)
-const $$ = document.querySelectorAll.bind(document)
-
-function i18n() {
-  const elements = $$('[data-i18n]')
-
-  elements.forEach((element) => {
-    element.textContent = chrome.i18n.getMessage(element.dataset.i18n)
-  })
-}
-
-function capitalize(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1)
-}
-
-function removeChildren(element) {
-  while (element.firstChild) {
-    element.removeChild(element.firstChild)
-  }
-}
-
-function el(name) {
-  return document.createElement(name)
-}
+const {
+  $,
+  $$,
+  i18n,
+  capitalize,
+  removeChildren,
+  el,
+  debounce,
+  Background,
+  Content,
+} = Common
 
 function renderTotals(prefix, totals) {
   let any = false
@@ -55,32 +42,6 @@ function renderTotals(prefix, totals) {
   }
 }
 
-const Background = {
-  call(func, ...args) {
-    return new Promise((resolve, reject) =>
-      chrome.runtime.sendMessage({ func, args }, (response) =>
-        chrome.runtime.lastError
-          ? reject(new Error(chrome.runtime.lastError.message))
-          : resolve(response)
-      )
-    )
-  },
-}
-
-const Content = {
-  call(func, ...args) {
-    return new Promise((resolve, reject) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
-        chrome.tabs.sendMessage(tabs[0].id, { func, args }, (response) =>
-          chrome.runtime.lastError
-            ? reject(new Error(chrome.runtime.lastError.message))
-            : resolve(response)
-        )
-      )
-    })
-  },
-}
-
 i18n()
 
 //
@@ -91,6 +52,30 @@ i18n()
   $(`#blocked-page__missing`).classList.remove('hidden')
   $(`#blocked-total__stats`).classList.add('hidden')
   $(`#blocked-total__missing`).classList.remove('hidden')
+
+  $$('.tab').forEach((tab) =>
+    tab.addEventListener('click', (e) => {
+      $$('.tab').forEach((tab) => tab.classList.remove('tab--active'))
+
+      e.target.classList.add('tab--active')
+
+      $$('[data-tab-content]').forEach((tabContent) =>
+        tabContent.classList.add('hidden')
+      )
+
+      $(`[data-tab-content='${e.target.dataset.tab}']`).classList.remove(
+        'hidden'
+      )
+    })
+  )
+
+  // Blocked modals tab
+
+  $('.link-options').addEventListener('click', (e) => {
+    e.preventDefault()
+
+    chrome.runtime.openOptionsPage()
+  })
 
   modalTypes.push(...(await Background.call('getModalTypes')))
 
@@ -103,11 +88,11 @@ i18n()
 
   let connected = true
 
-  let blockedModals = {}
-
   try {
     // Show page totals
-    blockedModals = await Content.call('getBlockedModals')
+    const blockedModals = await Content.call('getBlockedModals')
+
+    renderTotals('#blocked-page', blockedModals)
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(error)
@@ -115,9 +100,74 @@ i18n()
     connected = false
   }
 
-  $('#options').classList[connected ? 'remove' : 'add']('hidden')
+  // Show page specific content only if we have a content script connection
+  $$('.if-connected').forEach((element) =>
+    element.classList[connected ? 'remove' : 'add']('hidden')
+  )
 
-  renderTotals('#blocked-page', blockedModals)
+  if (connected) {
+    // Add/remove hostnames to allow list
+    const allowed = await Content.call('isAllowed')
+
+    $('#input-allowed').checked = allowed
+
+    $('#input-allowed').addEventListener('click', async (el) => {
+      const { allowList } = await chrome.storage.sync.get({
+        allowList: [],
+      })
+
+      const url = await Content.call('getUrl')
+
+      let { hostname } = new URL(url)
+
+      hostname = hostname.replace(/^www\./, '')
+
+      if (el.target.checked) {
+        allowList.push(hostname)
+      } else {
+        const index = allowList.findIndex((_hostname) => _hostname === hostname)
+
+        if (index !== -1) {
+          allowList.splice(index, 1)
+        }
+      }
+
+      chrome.storage.sync.set({ allowList })
+
+      Content.call('reload')
+    })
+  }
+
+  // Definitions tab
+
+  $('#input-definitions').addEventListener('blur', (event) => {
+    const json = event.target.value
+
+    try {
+      const definitions = JSON.parse(json)
+
+      event.target.value = JSON.stringify(definitions, null, 2)
+    } catch (error) {
+      // Do nothing
+    }
+  })
+
+  $('#input-definitions').addEventListener(
+    'input',
+    debounce((event) => {
+      const json = event.target.value
+
+      try {
+        const definitions = JSON.parse(json)
+
+        $('#errors-definitions').textContent = ''
+      } catch (error) {
+        console.log(error)
+
+        $('#errors-definitions').textContent = error.toString()
+      }
+    }, 500)
+  )
 
   $('.content').classList.add('visible')
 })()

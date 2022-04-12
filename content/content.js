@@ -1,21 +1,11 @@
 /* eslint-env browser */
-/* globals chrome */
+/* globals chrome, Common */
+
+const { $, debounce, Background } = Common
 
 const definitions = []
 
 const blockedModals = []
-
-const Background = {
-  call(func, ...args) {
-    return new Promise((resolve, reject) =>
-      chrome.runtime.sendMessage({ func, args }, (response) =>
-        chrome.runtime.lastError
-          ? reject(new Error(chrome.runtime.lastError.message))
-          : resolve(response)
-      )
-    )
-  },
-}
 
 const Content = {
   getBlockedModals() {
@@ -26,7 +16,7 @@ const Content = {
 
 const Functions = {
   $(selector) {
-    return !!document.querySelector(selector)
+    return !!$(selector)
   },
 }
 
@@ -37,22 +27,6 @@ function log(...messages) {
     Background.call('error', error.toString(), error.stack)
   } else {
     Background.call('log', ...messages)
-  }
-}
-
-function debounce(func, wait) {
-  let timeout
-
-  return (...args) => {
-    const debounced = () => {
-      clearTimeout(timeout)
-
-      func(...args)
-    }
-
-    clearTimeout(timeout)
-
-    timeout = setTimeout(debounced, wait)
   }
 }
 
@@ -77,7 +51,7 @@ const run = () => {
       let found = false
 
       actions.forEach(({ selector, action }) => {
-        const node = document.querySelector(selector)
+        const node = $(selector)
 
         if (node) {
           found = true
