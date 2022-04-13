@@ -1,5 +1,10 @@
 {
   "*": {
     "[id^='sp_message_container_']": "remove"
+  },
+  "*.simplywall.st": {
+    "if $([data-cy-id='careers-upsell'])": {
+      "[data-cy-id='careers-upsell']": "removeParent"
+    }
   }
 }

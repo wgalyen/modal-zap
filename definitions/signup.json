@@ -1,11 +1,18 @@
 {
   "*": {
-    ".wbounce-modal": "removeIf newsletter"
+    ".wbounce-modal": "removeIf newsletter",
+    ".leadinModal": "remove"
   },
   "*.nytimes.com": {
     ".MAG_web_all_Monthly-Sale-dock": "remove"
   },
   "*.theatlantic.com": {
-    "#paywall[data-category^='nudge']": "remove"
+    "#paywall[data-category^='nudge']": "remove",
+  },
+  "*.bloomberg.com": {
+    "#fortress-preblocked-container-root": "remove"
+  },
+  "*.ieee.org": {
+    ".lightbox-popup": "removeIf 'create an account'"
   }
 }
