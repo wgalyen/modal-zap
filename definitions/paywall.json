@@ -12,7 +12,7 @@
     ".paywall-modal": "remove"
   },
   "*.wired.com": {
-    ".persistent-bottom": "remove",
+    ".persistent-bottom": "remove"
   },
   "*.washingtonpost.com": {
     "if $(.paywall-overlay) sleep(1000)": {
@@ -26,6 +26,15 @@
     "if $(#modal-container)": {
       "#modal-container": "remove",
       "#root": "addStyle filter: none"
+    }
+  },
+  "*.theguardian.com": {
+    "#bottom-banner": "removeIf 'Start free trial'"
+  },
+  "*.bloomberg.com": {
+    "if $(#fortress-paywall-container-root)": {
+      "#fortress-paywall-container-root": "remove",
+      "body": "addStyle overflow: auto"
     }
   }
 }
