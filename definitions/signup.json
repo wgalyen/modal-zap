@@ -7,7 +7,7 @@
     ".MAG_web_all_Monthly-Sale-dock": "remove"
   },
   "*.theatlantic.com": {
-    "#paywall[data-category^='nudge']": "remove",
+    "#paywall[data-category^='nudge']": "remove"
   },
   "*.bloomberg.com": {
     "#fortress-preblocked-container-root": "remove"
@@ -19,6 +19,16 @@
     "if $([data-test-id='giftWrap'])": {
       "[data-test-id='giftWrap']": "remove",
       "body": "removeStyle"
+    }
+  },
+  "*.nature.com": {
+    ".c-site-messages--nature-briefing-email-variant": "remove"
+  },
+  "*.boredpanda.com": {
+    "if $(#subscribe-before-leaving)": {
+      "#subscribe-before-leaving": "remove",
+      "#modal-backdrop": "remove",
+      "body": "removeClass modal-open"
     }
   }
 }
