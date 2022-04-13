@@ -14,5 +14,11 @@
   },
   "*.ieee.org": {
     ".lightbox-popup": "removeIf 'create an account'"
+  },
+  "*.pinterest.com": {
+    "if $([data-test-id='giftWrap'])": {
+      "[data-test-id='giftWrap']": "remove",
+      "body": "removeStyle"
+    }
   }
 }
