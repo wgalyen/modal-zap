@@ -74,7 +74,6 @@ const run = async () => {
 
           switch (func) {
             case 'call':
-              Actions[func](selector, ...args)
               success = Actions[func](selector, ...args)
 
               break

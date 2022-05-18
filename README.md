@@ -12,8 +12,6 @@ focus on the content.
 
 ### Google Chrome
 
-https://chrome.google.com/webstore/detail/demodal/fjhbdkfknppikobblnjibmkmogjeffcf
-
 Install locally:
 
 * Clone this repository
